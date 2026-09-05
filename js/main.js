@@ -1,11 +1,39 @@
 /* ═══════════════════════════════════════════════════════════════════════ */
-/*                    JAVASCRIPT - THCS CÔNG CHÍNH                         */
+/*           JAVASCRIPT - THCS CÔNG CHÍNH GIỐNG THCS CẦU GIẤY              */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function() {
     
     // ═══════════════════════════════════════════════════════════════════
-    // 1. MOBILE MENU TOGGLE
+    // 1. UPDATE DATE & TIME
+    // ═══════════════════════════════════════════════════════════════════
+    function updateDateTime() {
+        const now = new Date();
+        
+        const dateStr = now.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        
+        const timeStr = now.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        const currentDate = document.getElementById('currentDate');
+        const currentTime = document.getElementById('currentTime');
+        
+        if (currentDate) currentDate.textContent = dateStr;
+        if (currentTime) currentTime.textContent = timeStr;
+    }
+    
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 2. MOBILE MENU TOGGLE
     // ═══════════════════════════════════════════════════════════════════
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
@@ -27,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ═══════════════════════════════════════════════════════════════════
-    // 2. SMOOTH SCROLL & ACTIVE NAVIGATION
+    // 3. SMOOTH SCROLL
     // ═══════════════════════════════════════════════════════════════════
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
@@ -39,69 +67,130 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Update active nav link on scroll
-    window.addEventListener('scroll', function() {
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-menu a');
+    // ═══════════════════════════════════════════════════════════════════
+    // 4. BANNER SLIDER
+    // ═══════════════════════════════════════════════════════════════════
+    const sliderPrev = document.querySelector('.slider-prev');
+    const sliderNext = document.querySelector('.slider-next');
+    let currentSlide = 0;
 
-        let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (window.pageYOffset >= sectionTop - 200) {
-                current = section.getAttribute('id');
-            }
+    if (sliderPrev && sliderNext) {
+        sliderPrev.addEventListener('click', function() {
+            currentSlide = (currentSlide - 1 + 1) % 1;
+            updateSlider();
         });
 
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href').slice(1) === current) {
-                link.classList.add('active');
-            }
+        sliderNext.addEventListener('click', function() {
+            currentSlide = (currentSlide + 1) % 1;
+            updateSlider();
         });
-    });
+
+        function updateSlider() {
+            const slider = document.querySelector('.slider-wrapper');
+            if (slider) {
+                slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 3. CONTACT FORM HANDLING
+    // 5. SEARCH FUNCTIONALITY
     // ═══════════════════════════════════════════════════════════════════
-    const contactForm = document.getElementById('contactForm');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
+    const searchBtn = document.querySelector('.btn-search-main');
+    const searchInput = document.querySelector('.search-box input');
+
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                console.log('Tìm kiếm:', searchTerm);
+                // Thực hiện tìm kiếm
+                alert('Tìm kiếm: ' + searchTerm + '\n(Chức năng tìm kiếm sẽ được triển khai)');
+            } else {
+                alert('Vui lòng nhập từ khóa tìm kiếm');
+            }
+        });
 
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const message = document.getElementById('message').value.trim();
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+    }
 
-            // Validation
-            if (!name || !email || !phone || !message) {
-                showAlert('⚠️ Vui lòng điền đầy đủ tất cả trường thông tin!', 'error');
+    // ═══════════════════════════════════════════════════════════════════
+    // 6. NEWSLETTER FORM
+    // ═══════════════════════════════════════════════════════════════════
+    const newsletterForm = document.querySelector('.newsletter-form');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = this.querySelector('input[type="email"]').value.trim();
+            
+            if (!email) {
+                alert('⚠️ Vui lòng nhập email!');
                 return;
             }
 
             if (!isValidEmail(email)) {
-                showAlert('⚠️ Vui lòng nhập email hợp lệ!', 'error');
+                alert('⚠️ Email không hợp lệ!');
                 return;
             }
 
-            if (!isValidPhone(phone)) {
-                showAlert('⚠️ Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số)!', 'error');
-                return;
+            // Save to localStorage
+            let subscribers = JSON.parse(localStorage.getItem('subscribers')) || [];
+            if (!subscribers.includes(email)) {
+                subscribers.push(email);
+                localStorage.setItem('subscribers', JSON.stringify(subscribers));
             }
 
-            // Success
-            showAlert('✅ Cảm ơn bạn đã liên hệ!\nChúng tôi sẽ phản hồi sớm nhất.', 'success');
+            alert('✅ Cảm ơn! Bạn đã đăng ký nhận tin từ THCS Công Chính!');
             this.reset();
         });
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 4. SCROLL TO TOP BUTTON
+    // 7. QUICK ACCESS ITEMS - ADD CLICK HANDLERS
+    // ═══════════════════════════════════════════════════════════════════
+    const quickItems = document.querySelectorAll('.quick-item');
+    quickItems.forEach((item, index) => {
+        item.addEventListener('click', function() {
+            const title = this.querySelector('h4').textContent;
+            console.log('Clicked:', title);
+            // Có thể thêm logic điều hướng hoặc modal ở đây
+        });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 8. REVEAL ON SCROLL ANIMATION
+    // ═══════════════════════════════════════════════════════════════════
+    if ('IntersectionObserver' in window) {
+        const observerElements = document.querySelectorAll(
+            '.news-card, .news-item, .sidebar-section, .featured-news, .quick-item'
+        );
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        observerElements.forEach(element => {
+            revealObserver.observe(element);
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 9. SCROLL TO TOP BUTTON
     // ═══════════════════════════════════════════════════════════════════
     const scrollTopBtn = document.createElement('button');
     scrollTopBtn.id = 'scrollTopBtn';
     scrollTopBtn.innerHTML = '↑';
+    scrollTopBtn.setAttribute('aria-label', 'Scroll to top');
     document.body.appendChild(scrollTopBtn);
 
     window.addEventListener('scroll', function() {
@@ -117,41 +206,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ═══════════════════════════════════════════════════════════════════
-    // 5. REVEAL ON SCROLL ANIMATION
+    // 10. NEWS ITEMS - ADD CLICK HANDLERS
     // ═══════════════════════════════════════════════════════════════════
-    if ('IntersectionObserver' in window) {
-        const observerElements = document.querySelectorAll(
-            '.news-card, .teacher-card, .stat-item, .activity-card, .achievement-item, .info-item'
-        );
-
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        observerElements.forEach(element => {
-            revealObserver.observe(element);
+    const newsItems = document.querySelectorAll('.news-item h3, .news-card h3, .featured-content h2');
+    newsItems.forEach(item => {
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', function() {
+            // Điều hướng tới bài viết
+            console.log('Bài viết được click:', this.textContent);
         });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // 6. SEARCH FUNCTIONALITY (Optional)
-    // ═══════════════════════════════════════════════════════════════════
-    const searchBox = document.querySelector('.search-box input');
-    const searchBtn = document.querySelector('.search-box button');
-    
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
-            const searchTerm = searchBox.value.trim();
-            if (searchTerm) {
-                console.log('Searching for:', searchTerm);
-                // Implement search functionality here
-            }
-        });
-    }
+    });
 
 });
 
@@ -165,22 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function isValidEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
-}
-
-/**
- * Validate phone number (10-11 digits)
- */
-function isValidPhone(phone) {
-    const re = /^[0-9]{10,11}$/;
-    return re.test(phone.replace(/[-\s]/g, ''));
-}
-
-/**
- * Show alert messages
- */
-function showAlert(message, type = 'info') {
-    alert(message);
-    // Có thể thay bằng toast notification nếu cần
 }
 
 // ═══════════════════════════════════════════════════════════════════════ 
@@ -200,25 +248,37 @@ style.textContent = `
         }
     }
 
-    @media (max-width: 768px) {
-        .navbar .container {
-            position: relative;
-        }
+    #scrollTopBtn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #c41e3a 0%, #8b1538 100%);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: none;
+        z-index: 999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        font-weight: bold;
+    }
 
-        .nav-menu {
-            z-index: 1000;
-        }
+    #scrollTopBtn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
 
-        .menu-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(10px, 10px);
-        }
-
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .menu-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(7px, -7px);
+    @media (max-width: 576px) {
+        #scrollTopBtn {
+            width: 45px;
+            height: 45px;
+            bottom: 20px;
+            right: 20px;
+            font-size: 1.2rem;
         }
     }
 `;
@@ -230,7 +290,7 @@ document.head.appendChild(style);
 
 console.log(
     '%c🎓 THCS Công Chính - Website Chính Thức',
-    'font-size: 20px; font-weight: bold; color: #1e40af;'
+    'font-size: 20px; font-weight: bold; color: #c41e3a;'
 );
 console.log(
     '%cXã Công Chính - Tỉnh Thanh Hóa',
